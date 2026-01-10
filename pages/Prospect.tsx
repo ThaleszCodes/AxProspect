@@ -142,6 +142,7 @@ export const Prospect: React.FC = () => {
   const copyText = (text: string) => {
       let content = text.replace('[niche]', currentLead.niche || 'seu nicho');
       content = content.replace('[name]', currentLead.businessName);
+      content = content.replace('[company]', currentLead.company || currentLead.businessName);
       navigator.clipboard.writeText(content);
       // Show small toast? For now just alert or nothing
   };
@@ -254,7 +255,10 @@ export const Prospect: React.FC = () => {
           </div>
           
           <h1 className="text-2xl font-bold text-white mb-1">{currentLead.businessName}</h1>
-          <p className="text-brand-400 text-lg mb-3">{currentLead.instagramHandle}</p>
+          <p className="text-brand-400 text-lg mb-3 flex items-center gap-2">
+            {currentLead.instagramHandle} 
+            {currentLead.company && <span className="text-gray-500 text-xs border border-gray-700 px-2 rounded-full">{currentLead.company}</span>}
+          </p>
           
           {/* Quick Note Input */}
           <div className="relative">
@@ -315,7 +319,7 @@ export const Prospect: React.FC = () => {
               </div>
               <div className="relative group flex-1 bg-black/20 rounded-lg p-3 border border-gray-700/50">
                 <p className="text-sm text-gray-300 leading-relaxed whitespace-pre-wrap h-full overflow-y-auto">
-                  {currentScript?.content.replace('[name]', currentLead.businessName).replace('[niche]', currentLead.niche) || 'Selecione ou crie um script.'}
+                  {currentScript?.content.replace('[name]', currentLead.businessName).replace('[niche]', currentLead.niche || '').replace('[company]', currentLead.company || currentLead.businessName) || 'Selecione ou crie um script.'}
                 </p>
                 <button onClick={() => currentScript && copyText(currentScript.content)} className="absolute top-2 right-2 p-2 bg-gray-700 rounded-lg text-white opacity-50 hover:opacity-100 transition-opacity">
                   <Copy size={16} />

@@ -16,9 +16,17 @@ export type LeadTemperature = 'HOT' | 'WARM' | 'COLD' | null;
 export type DemandType = 'PONTUAL' | 'RECORRENTE' | 'INDEFINIDO';
 export type UrgencyLevel = 'BAIXA' | 'MEDIA' | 'ALTA';
 
+export interface HistoryItem {
+  id: string;
+  date: string;
+  type: 'NOTE' | 'STATUS_CHANGE' | 'CONTACT';
+  content: string;
+}
+
 export interface Lead {
   id: string;
-  businessName: string;
+  businessName: string; // Used as Contact Name now
+  company?: string;     // New Company Name field
   instagramHandle: string;
   whatsapp?: string;
   niche: string;
@@ -32,6 +40,9 @@ export interface Lead {
   lastContactedAt?: string;
   createdAt: string;
   
+  // History
+  history?: HistoryItem[];
+
   // Design Specifics
   interestedService?: string;
   demandType?: DemandType;
@@ -54,10 +65,10 @@ export enum ScriptType {
   FOLLOW_UP = 'Follow-up',
   REENGAGEMENT = 'Reengajamento',
   FULL_PITCH = 'Script Completo',
-  OBJECTION_PRICE = 'Objeção: Preço',      // New
-  OBJECTION_PARTNER = 'Objeção: Sócio',    // New
-  OBJECTION_LATER = 'Objeção: Momento',    // New
-  OBJECTION_TRUST = 'Objeção: Confiança'   // New
+  OBJECTION_PRICE = 'Objeção: Preço',      
+  OBJECTION_PARTNER = 'Objeção: Sócio',    
+  OBJECTION_LATER = 'Objeção: Momento',    
+  OBJECTION_TRUST = 'Objeção: Confiança'   
 }
 
 export interface Script {

@@ -140,7 +140,7 @@ export const Scripts: React.FC = () => {
                 </select>
               </div>
               <div className="flex-1">
-                <label className="block text-sm text-gray-400 mb-1">Conteúdo (Use [name] e [niche] como variáveis)</label>
+                <label className="block text-sm text-gray-400 mb-1">Conteúdo (Use [name], [niche], [company] como variáveis)</label>
                 <textarea 
                   className="w-full h-64 bg-gray-900 border border-gray-700 rounded-lg p-3 text-white focus:border-brand-500 focus:outline-none font-mono text-sm leading-relaxed"
                   value={content}

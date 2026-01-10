@@ -23,6 +23,7 @@ const getCurrentUserId = async () => {
 const mapLeadFromDB = (row: any): Lead => ({
   id: row.id,
   businessName: row.business_name,
+  company: row.company, // New field
   instagramHandle: row.instagram_handle,
   whatsapp: row.whatsapp,
   niche: row.niche,
@@ -35,6 +36,7 @@ const mapLeadFromDB = (row: any): Lead => ({
   listId: row.list_id,
   lastContactedAt: row.last_contacted_at,
   createdAt: row.created_at,
+  history: row.history || [], // New field
   interestedService: row.interested_service,
   demandType: row.demand_type,
   urgency: row.urgency,
@@ -46,6 +48,7 @@ const mapLeadToDB = (lead: Lead, userId?: string) => ({
   id: lead.id,
   user_id: userId,
   business_name: lead.businessName,
+  company: lead.company, // New field
   instagram_handle: lead.instagramHandle,
   whatsapp: lead.whatsapp,
   niche: lead.niche,
@@ -58,6 +61,7 @@ const mapLeadToDB = (lead: Lead, userId?: string) => ({
   list_id: lead.listId,
   last_contacted_at: lead.lastContactedAt,
   created_at: lead.createdAt,
+  history: lead.history, // New field
   interested_service: lead.interestedService,
   demand_type: lead.demandType,
   urgency: lead.urgency,
@@ -148,8 +152,6 @@ export const db = {
   saveLead: async (lead: Lead) => {
     const userId = await getCurrentUserId();
     const payload = mapLeadToDB(lead, userId);
-    // If we have a user, ensure the payload has user_id. If ID exists in DB, Supabase RLS handles the rest usually,
-    // but explicit user_id on insert is safer.
     await supabase.from('leads').upsert(payload);
   },
 
@@ -158,7 +160,6 @@ export const db = {
   },
 
   deleteAllLeads: async () => {
-    // Only deletes leads accessible by the current user due to RLS
     const userId = await getCurrentUserId();
     if(userId) {
        await supabase.from('leads').delete().neq('id', '00000000-0000-0000-0000-000000000000');
