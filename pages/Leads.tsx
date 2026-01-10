@@ -2,7 +2,7 @@
 import React, { useState, useEffect } from 'react';
 import { db, generateId } from '../services/db';
 import { Lead, LeadStatus, List, UserSettings, Project, ProjectStatus, HistoryItem } from '../types';
-import { Plus, Search, Filter, Instagram, MessageCircle, Trash2, Edit, Tag, Rocket, Archive, CheckSquare, Send, Building2, User } from 'lucide-react';
+import { Plus, Search, Filter, Instagram, MessageCircle, Trash2, Edit, Tag, Rocket, Archive, CheckSquare, Send, Building2, User, RefreshCcw } from 'lucide-react';
 
 export const Leads: React.FC = () => {
   const [leads, setLeads] = useState<Lead[]>([]);
@@ -39,7 +39,8 @@ export const Leads: React.FC = () => {
     loadData();
   }, []);
 
-  const confirmDelete = (lead: Lead) => {
+  const confirmDelete = (lead: Lead, e: React.MouseEvent) => {
+    e.stopPropagation();
     setLeadToDelete(lead);
   };
 
@@ -51,11 +52,18 @@ export const Leads: React.FC = () => {
     }
   };
 
-  const handleArchive = async (lead: Lead) => {
-    if (confirm('Arquivar este lead? Ele sairá da visualização principal.')) {
-      await db.saveLead({ ...lead, status: LeadStatus.ARCHIVED });
-      loadData();
-    }
+  const handleArchive = async (lead: Lead, e: React.MouseEvent) => {
+    e.stopPropagation();
+    // Toggle logic: If archived, restore to NEW. If not, set to ARCHIVED.
+    const newStatus = lead.status === LeadStatus.ARCHIVED ? LeadStatus.NEW : LeadStatus.ARCHIVED;
+    
+    // Optimistic Update for speed
+    const updatedLeads = leads.map(l => l.id === lead.id ? { ...l, status: newStatus } : l);
+    setLeads(updatedLeads);
+
+    await db.saveLead({ ...lead, status: newStatus });
+    // Background refresh to ensure consistency
+    db.getLeads().then(setLeads);
   };
 
   const handleSave = async (e: React.FormEvent) => {
@@ -91,8 +99,6 @@ export const Leads: React.FC = () => {
     setFormData({...formData, history: updatedHistory});
     setNewHistoryNote('');
     
-    // We don't save to DB immediately here, we wait for the main "Save" button to keep it atomic, 
-    // OR we could save immediately. Let's save immediately for better UX on notes.
     const leadToSave = { ...editingLead, ...formData, history: updatedHistory } as Lead;
     await db.saveLead(leadToSave);
   };
@@ -123,7 +129,8 @@ export const Leads: React.FC = () => {
     loadData();
   };
 
-  const openEdit = (lead: Lead) => {
+  const openEdit = (lead: Lead, e: React.MouseEvent) => {
+    e.stopPropagation();
     setEditingLead(lead);
     setFormData(lead);
     setIsModalOpen(true);
@@ -140,7 +147,8 @@ export const Leads: React.FC = () => {
     setIsModalOpen(true);
   };
 
-  const openProjectModal = (lead: Lead) => {
+  const openProjectModal = (lead: Lead, e: React.MouseEvent) => {
+    e.stopPropagation();
     setEditingLead(lead);
     setProjectData({
       title: `${lead.interestedService || 'Projeto'} - ${lead.businessName}`,
@@ -154,6 +162,7 @@ export const Leads: React.FC = () => {
     const matchesSearch = lead.businessName.toLowerCase().includes(searchTerm.toLowerCase()) || 
                           lead.instagramHandle.toLowerCase().includes(searchTerm.toLowerCase()) ||
                           (lead.company || '').toLowerCase().includes(searchTerm.toLowerCase());
+    
     const matchesStatus = filterStatus === 'ALL' || lead.status === filterStatus;
     
     // Archive Logic
@@ -216,7 +225,7 @@ export const Leads: React.FC = () => {
       <div className="grid gap-3">
         {filteredLeads.length === 0 && <div className="text-center p-8 text-gray-500 bg-dark-card rounded-xl border border-gray-800">Nenhum lead encontrado.</div>}
         {filteredLeads.map(lead => (
-          <div key={lead.id} className="bg-dark-card border border-gray-800 rounded-xl p-4 flex flex-col md:flex-row justify-between md:items-center gap-4 hover:border-gray-700 transition-colors relative">
+          <div key={lead.id} className="bg-dark-card border border-gray-800 rounded-xl p-4 flex flex-col md:flex-row justify-between md:items-center gap-4 hover:border-gray-700 transition-colors relative group">
             <div className="flex-1 pl-2">
                <div className="flex items-center gap-2 mb-1">
                  <h3 className="font-bold text-white text-lg">{lead.businessName}</h3>
@@ -233,21 +242,27 @@ export const Leads: React.FC = () => {
             </div>
 
             <div className="flex items-center gap-3">
-              <a href={`https://instagram.com/${lead.instagramHandle.replace('@', '')}`} target="_blank" className="p-2 bg-gray-800 text-pink-400 rounded-lg"><Instagram size={18} /></a>
-              <a href={lead.whatsapp ? `https://wa.me/${lead.whatsapp.replace(/\D/g, '')}` : '#'} target="_blank" className={`p-2 rounded-lg ${lead.whatsapp ? 'bg-gray-800 text-green-400' : 'bg-gray-800/50 text-gray-600'}`}><MessageCircle size={18} /></a>
+              <a href={`https://instagram.com/${lead.instagramHandle.replace('@', '')}`} target="_blank" className="p-2 bg-gray-800 text-pink-400 rounded-lg hover:bg-gray-700"><Instagram size={18} /></a>
+              <a href={lead.whatsapp ? `https://wa.me/${lead.whatsapp.replace(/\D/g, '')}` : '#'} target="_blank" className={`p-2 rounded-lg hover:bg-gray-700 ${lead.whatsapp ? 'bg-gray-800 text-green-400' : 'bg-gray-800/50 text-gray-600'}`}><MessageCircle size={18} /></a>
               
               <div className="w-px h-8 bg-gray-800 mx-1"></div>
               
               {/* Fechar Projeto Action */}
-              <button onClick={() => openProjectModal(lead)} title="Iniciar Projeto" className="p-2 text-emerald-400 hover:bg-emerald-500/10 rounded-lg">
+              <button onClick={(e) => openProjectModal(lead, e)} title="Iniciar Projeto" className="p-2 text-emerald-400 hover:bg-emerald-500/10 rounded-lg">
                 <Rocket size={18} />
               </button>
 
-              <button onClick={() => openEdit(lead)} title="Editar" className="p-2 text-gray-400 hover:text-white hover:bg-gray-800 rounded-lg"><Edit size={18} /></button>
+              <button onClick={(e) => openEdit(lead, e)} title="Editar" className="p-2 text-gray-400 hover:text-white hover:bg-gray-800 rounded-lg"><Edit size={18} /></button>
               
-              <button onClick={() => handleArchive(lead)} title="Arquivar" className="p-2 text-gray-400 hover:text-orange-400 hover:bg-gray-800 rounded-lg"><Archive size={18} /></button>
+              <button 
+                onClick={(e) => handleArchive(lead, e)} 
+                title={lead.status === LeadStatus.ARCHIVED ? "Desarquivar" : "Arquivar"} 
+                className={`p-2 rounded-lg transition-colors ${lead.status === LeadStatus.ARCHIVED ? 'text-yellow-400 hover:bg-yellow-500/10' : 'text-gray-400 hover:text-orange-400 hover:bg-gray-800'}`}
+              >
+                {lead.status === LeadStatus.ARCHIVED ? <RefreshCcw size={18} /> : <Archive size={18} />}
+              </button>
               
-              <button onClick={() => confirmDelete(lead)} title="Excluir" className="p-2 text-gray-400 hover:text-red-400 hover:bg-gray-800 rounded-lg"><Trash2 size={18} /></button>
+              <button onClick={(e) => confirmDelete(lead, e)} title="Excluir" className="p-2 text-gray-400 hover:text-red-400 hover:bg-gray-800 rounded-lg"><Trash2 size={18} /></button>
             </div>
           </div>
         ))}
@@ -255,7 +270,7 @@ export const Leads: React.FC = () => {
 
       {/* Delete Confirmation Modal */}
       {leadToDelete && (
-        <div className="fixed inset-0 z-[60] flex items-center justify-center p-4 bg-black/80 backdrop-blur-sm">
+        <div className="fixed inset-0 z-[60] flex items-center justify-center p-4 bg-black/80 backdrop-blur-sm animate-in fade-in">
            <div className="bg-dark-card border border-red-500/30 rounded-2xl w-full max-w-sm p-6 shadow-2xl animate-in zoom-in-95">
               <h3 className="text-xl font-bold text-white mb-2">Excluir Lead?</h3>
               <p className="text-gray-400 mb-6">Você tem certeza que deseja excluir <strong>{leadToDelete.businessName}</strong>? Esta ação não pode ser desfeita.</p>
@@ -410,7 +425,7 @@ export const Leads: React.FC = () => {
                 <input type="number" required className="w-full bg-gray-900 border border-gray-700 rounded p-2 text-white" value={projectData.agreedValue} onChange={e => setProjectData({...projectData, agreedValue: Number(e.target.value)})} />
               </div>
               <div className="flex justify-end gap-3 mt-4">
-                 <button type="button" onClick={() => setIsProjectModalOpen(false)} className="px-4 py-2 text-gray-400">Cancelar</button>
+                 <button type="button" onClick={(e) => { e.stopPropagation(); setIsProjectModalOpen(false); }} className="px-4 py-2 text-gray-400">Cancelar</button>
                  <button type="submit" className="px-4 py-2 bg-emerald-600 text-white rounded font-bold">Criar Projeto</button>
               </div>
             </form>
