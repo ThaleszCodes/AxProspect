@@ -1,3 +1,4 @@
+
 import React from 'react';
 import { HashRouter, Routes, Route, Navigate } from 'react-router-dom';
 import { Layout } from './components/Layout';
@@ -9,6 +10,7 @@ import { Scripts } from './pages/Scripts';
 import { Import } from './pages/Import';
 import { SettingsPage } from './pages/Settings';
 import { Pipeline } from './pages/Pipeline';
+import { Finance } from './pages/Finance';
 import { AuthPage } from './pages/Auth';
 import { AuthProvider, useAuth } from './contexts/AuthContext';
 
@@ -38,6 +40,7 @@ const AppRoutes = () => {
         <Route index element={<Dashboard />} />
         <Route path="leads" element={<Leads />} />
         <Route path="pipeline" element={<Pipeline />} />
+        <Route path="finance" element={<Finance />} />
         <Route path="prospect" element={<Prospect />} />
         <Route path="lists" element={<Lists />} />
         <Route path="scripts" element={<Scripts />} />

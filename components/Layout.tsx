@@ -1,7 +1,7 @@
 
 import React from 'react';
 import { NavLink, Outlet, useLocation, useNavigate } from 'react-router-dom';
-import { LayoutDashboard, Users, ListFilter, FileText, Zap, UploadCloud, Menu, X, Settings, Trello, LogOut } from 'lucide-react';
+import { LayoutDashboard, Users, ListFilter, FileText, Zap, UploadCloud, Menu, X, Settings, Trello, LogOut, DollarSign } from 'lucide-react';
 import { useAuth } from '../contexts/AuthContext';
 
 export const Layout: React.FC = () => {
@@ -23,6 +23,7 @@ export const Layout: React.FC = () => {
     { to: '/', icon: LayoutDashboard, label: 'Dashboard' },
     { to: '/pipeline', icon: Trello, label: 'Pipeline', highlight: true },
     { to: '/leads', icon: Users, label: 'Leads' },
+    { to: '/finance', icon: DollarSign, label: 'Financeiro' },
     { to: '/prospect', icon: Zap, label: 'Sessão Foco' },
     { to: '/lists', icon: ListFilter, label: 'Listas' },
     { to: '/import', icon: UploadCloud, label: 'Importar' },

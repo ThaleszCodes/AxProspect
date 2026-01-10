@@ -109,6 +109,19 @@ export interface Project {
   createdAt: string;
 }
 
+// Finance
+export type TransactionType = 'INCOME' | 'EXPENSE';
+
+export interface Transaction {
+  id: string;
+  description: string;
+  amount: number;
+  type: TransactionType;
+  category: string;
+  date: string;
+  createdAt: string;
+}
+
 export interface UserSettings {
   id: string;
   servicesOffered: string[];

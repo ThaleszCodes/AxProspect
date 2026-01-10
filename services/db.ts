@@ -1,6 +1,6 @@
 
 import { supabase } from './supabase';
-import { Lead, List, Script, LeadStatus, ScriptType, Project, ProjectStatus, UserSettings } from '../types';
+import { Lead, List, Script, LeadStatus, ScriptType, Project, ProjectStatus, UserSettings, Transaction } from '../types';
 
 // ID Generator Helper
 export const generateId = () => {
@@ -133,6 +133,28 @@ const mapProjectToDB = (project: Project, userId?: string) => ({
   created_at: project.createdAt
 });
 
+// --- FINANCE MAPPERS ---
+const mapTransactionFromDB = (row: any): Transaction => ({
+  id: row.id,
+  description: row.description,
+  amount: Number(row.amount),
+  type: row.type,
+  category: row.category,
+  date: row.date,
+  createdAt: row.created_at
+});
+
+const mapTransactionToDB = (tx: Transaction, userId?: string) => ({
+  id: tx.id,
+  user_id: userId,
+  description: tx.description,
+  amount: tx.amount,
+  type: tx.type,
+  category: tx.category,
+  date: tx.date,
+  created_at: tx.createdAt
+});
+
 // Helper dates
 const daysAgo = (dateStr: string) => {
   const date = new Date(dateStr);
@@ -224,6 +246,23 @@ export const db = {
 
   deleteProject: async (id: string) => {
     await supabase.from('projects').delete().eq('id', id);
+  },
+
+  // --- FINANCE ---
+  getTransactions: async (): Promise<Transaction[]> => {
+    const { data, error } = await supabase.from('transactions').select('*').order('date', { ascending: false });
+    if (error) return [];
+    return data.map(mapTransactionFromDB);
+  },
+
+  saveTransaction: async (tx: Transaction) => {
+    const userId = await getCurrentUserId();
+    const payload = mapTransactionToDB(tx, userId);
+    await supabase.from('transactions').upsert(payload);
+  },
+
+  deleteTransaction: async (id: string) => {
+    await supabase.from('transactions').delete().eq('id', id);
   },
 
   // --- SETTINGS ---
